@@ -1,0 +1,29 @@
+# Maintainer: noxygalaxy <noxycraftyt@gmail.com>
+pkgname=rusteditor
+pkgver=${RUSTEDITOR_VERSION:?RUSTEDITOR_VERSION must be set}
+pkgrel=1
+pkgdesc="Free and open source video editor"
+arch=('x86_64' 'aarch64')
+url="https://github.com/jub0t/RustEditor"
+license=('AGPL-3.0-or-later')
+depends=('glibc' 'gtk3' 'fontconfig' 'freetype2' 'libxkbcommon' 'mesa' 'alsa-lib')
+options=('!strip' '!debug')
+source=()
+
+stage=${RUSTEDITOR_STAGE:?RUSTEDITOR_STAGE must point at the staged folder}
+
+package() {
+  install -Dm755 "$stage/rusteditor" "$pkgdir/opt/rusteditor/rusteditor"
+  install -d "$pkgdir/opt/rusteditor/lib"
+  cp -a "$stage"/lib/. "$pkgdir/opt/rusteditor/lib/"
+
+  install -d "$pkgdir/usr/bin"
+  printf '#!/bin/sh\nexec /opt/rusteditor/rusteditor "$@"\n' > "$pkgdir/usr/bin/rusteditor"
+  chmod 755 "$pkgdir/usr/bin/rusteditor"
+  install -Dm644 "$stage/rusteditor.desktop" "$pkgdir/usr/share/applications/rusteditor.desktop"
+  sed -i 's|^Exec=rusteditor|Exec=/opt/rusteditor/rusteditor %U|' "$pkgdir/usr/share/applications/rusteditor.desktop"
+  install -Dm644 "$stage/rusteditor.png" "$pkgdir/usr/share/icons/hicolor/256x256/apps/rusteditor.png"
+
+  install -Dm644 "$stage/LICENSE" "$pkgdir/usr/share/licenses/rusteditor/LICENSE"
+  install -Dm644 "$stage/THIRD_PARTY_NOTICES.md" "$pkgdir/usr/share/licenses/rusteditor/THIRD_PARTY_NOTICES.md"
+}

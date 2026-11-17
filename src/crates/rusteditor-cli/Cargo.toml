@@ -1,0 +1,34 @@
+[package]
+name = "rusteditor-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Command line driver for the RustEditor engine."
+
+# `rusteditor` is the editor window's binary; the driver gets the suffix.
+[[bin]]
+name = "rusteditor-cli"
+path = "src/main.rs"
+
+[dependencies]
+rusteditor-core.workspace = true
+rusteditor-media.workspace = true
+rusteditor-render.workspace = true
+# The `api` command: the RustEditor API over stdin and stdout. The `serve`
+# command: the same on a socket.
+rusteditor-api.workspace = true
+rusteditor-server.workspace = true
+serde_json.workspace = true
+# `preview` draws one effect's card, as the window does; `check` loads
+# packages and runs their probes.
+rusteditor-effects.workspace = true
+rusteditor-host.workspace = true
+clap.workspace = true
+
+[features]
+# `serve --grpc`. Off by default; see rusteditor-server.
+grpc = ["rusteditor-server/grpc"]
+
+[lints]
+workspace = true

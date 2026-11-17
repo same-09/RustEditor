@@ -1,0 +1,100 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+import { Theme, Glyph, Icon, Button } from "../primitives/primitives.slint";
+
+// The library's MCP page: Generate MCP asks the server for a code, and the
+// link to give an AI is shown here, ready to copy.
+export global Mcp {
+    /// The link, `https://editormcp.wisp.uno/<code>`; empty until generated.
+    in-out property <string> url;
+    /// What the relay is doing, in words: waiting for Automation, connected,
+    /// cannot reach the server.
+    in-out property <string> status;
+    /// The server is being asked.
+    in-out property <bool> busy;
+    /// Why the last press got no link; empty when it did.
+    in-out property <string> error;
+    /// The Generate MCP button.
+    callback generate();
+}
+
+export component McpPage inherits VerticalLayout {
+    padding: 12px;
+    spacing: 10px;
+    alignment: start;
+
+    Text {
+        text: "MCP";
+        color: Theme.fg;
+        font-size: Theme.fs-lg;
+        font-weight: Theme.weight-title;
+    }
+    Text {
+        text: "Press Generate MCP, then give the link to your AI. It can edit the scene in RustEditor through it.";
+        color: Theme.fg-muted;
+        font-size: Theme.fs;
+        wrap: word-wrap;
+    }
+
+    Button {
+        primary: true;
+        glyph: Glyph.link;
+        label: Mcp.busy ? "Generating..." : "Generate MCP";
+        enabled: !Mcp.busy;
+        clicked => { Mcp.generate(); }
+    }
+
+    if Mcp.status != "": Text {
+        text: Mcp.status;
+        color: Theme.fg-muted;
+        font-size: Theme.fs;
+        wrap: word-wrap;
+    }
+
+    if Mcp.error != "": Text {
+        text: Mcp.error;
+        color: Theme.danger-edge;
+        font-size: Theme.fs;
+        wrap: word-wrap;
+    }
+
+    if Mcp.url != "": VerticalLayout {
+        spacing: 6px;
+        Text {
+            text: "Your MCP link";
+            color: Theme.fg-muted;
+            font-size: Theme.fs;
+        }
+        Rectangle {
+            background: Theme.field;
+            border-radius: Theme.r-sm;
+            border-width: 1px;
+            border-color: Theme.line;
+            height: 32px;
+            // Read-only and selectable, so the link can be lifted with the
+            // keyboard as well as with the Copy button.
+            link := TextInput {
+                x: 8px;
+                width: parent.width - 16px;
+                height: parent.height;
+                text: Mcp.url;
+                read-only: true;
+                single-line: true;
+                color: Theme.fg;
+                font-family: Theme.font-technical;
+                font-size: Theme.fs;
+                vertical-alignment: center;
+                selection-background-color: Theme.accent;
+                selection-foreground-color: Theme.on-accent;
+            }
+        }
+        Button {
+            glyph: Glyph.check;
+            label: "Copy link";
+            clicked => {
+                link.select-all();
+                link.copy();
+            }
+        }
+    }
+}
