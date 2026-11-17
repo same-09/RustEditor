@@ -1,0 +1,48 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain (pinned in src/rust-toolchain.toml)
+        working-directory: src
+        run: rustup show
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src
+
+      - name: FFmpeg dev libs
+        run: |
+          scripts/ci/fetch.sh ffmpeg-win64 ffmpeg.zip
+          unzip -q ffmpeg.zip -d ffmpeg
+          dir=$(ls -d "$PWD"/ffmpeg/*/ | head -1)
+          echo "FFMPEG_DIR=$(cygpath -w "$dir")" >> "$GITHUB_ENV"
+          echo "$(cygpath -w "$dir/bin")" >> "$GITHUB_PATH"
+
+      - name: Build
+        working-directory: src
+        run: cargo build --locked --profile app -p rusteditor
+
+      - name: Collect files
+        run: |
+          mkdir -p out
+          cp src/target/app/rusteditor.exe out/
+          cp ffmpeg/*/bin/*.dll out/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RustEditor-windows
+          path: out
