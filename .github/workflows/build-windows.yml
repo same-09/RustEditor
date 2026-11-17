@@ -34,7 +34,7 @@ jobs:
 
       - name: Build
         working-directory: src
-        run: cargo build --locked --profile app -p rusteditor
+        run: cargo build --profile app -p rusteditor
 
       - name: Collect files
         run: |
